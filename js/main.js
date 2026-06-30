@@ -166,12 +166,25 @@ function initReport() {
 }
 
 // ============================================
-// Chat — 直接调用 Coze 扣子 API
+// Chat — 统一经 agents/chat 端点路由
 // ============================================
 
-const COZE_TOKEN = 'pat_SkzkDaJsGCZG3ryWdKUqSQUlfsEiOHtpOaNjOlzLh2mfR6sDekXrg5DbFMx0CBZ8';
-const COZE_BOT_ID = '7656059514227146792';
-const COZE_API = 'https://api.coze.cn/v3/chat';
+const CHAT_API = '/chat';
+const DEFAULT_MODEL = 'builtin';   // 'builtin' 或 'coze'
+
+/**
+ * 生成或恢复会话 ID（持久化到 localStorage，同一窗口/标签页会话内复用）
+ * 平台要求每个 AI 端点请求必须携带 makers-conversation-id header
+ */
+function getConversationId() {
+  const STORAGE_KEY = 'zhiwo_conversation_id';
+  let id = sessionStorage.getItem(STORAGE_KEY);
+  if (!id) {
+    id = 'zhiwo_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+    sessionStorage.setItem(STORAGE_KEY, id);
+  }
+  return id;
+}
 
 let chatHistory = [];
 
@@ -211,19 +224,18 @@ async function sendMessage() {
   scrollToBottom(dialog);
 
   try {
-    // 直接调用 Coze API
-    const response = await fetch(COZE_API, {
+    // 经 agents/chat 端点统一路由（不再直接持用 API Key）
+    const conversationId = getConversationId();
+
+    const response = await fetch(CHAT_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${COZE_TOKEN}`
+        'makers-conversation-id': conversationId
       },
       body: JSON.stringify({
-        bot_id: COZE_BOT_ID,
-        user_id: 'zhiwo_user_001',
-        stream: true,
-        auto_save_history: true,
-        additional_messages: [{ role: 'user', content: text, content_type: 'text' }]
+        message: text,
+        model: DEFAULT_MODEL
       })
     });
 
@@ -231,7 +243,7 @@ async function sendMessage() {
       throw new Error(`服务器错误: ${response.status}`);
     }
 
-    // 读取 SSE 流
+    // 读取 SSE 流（OpenAI 兼容格式：data: {"choices":[{"delta":{"content":"..."}}]}）
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let rawBuffer = '';
@@ -244,31 +256,41 @@ async function sendMessage() {
 
       rawBuffer += decoder.decode(value, { stream: true });
 
-      // 解析 SSE 格式: event: xxx\ndata: {...}\n\n
+      // 解析 SSE 格式: data: {...}\n\n
       const events = rawBuffer.split('\n\n');
       rawBuffer = events.pop() || '';  // 保留未完成的部分
 
       for (const event of events) {
-        // 提取 event 和 data 行
-        let eventType = '';
-        let dataStr = '';
         for (const line of event.split('\n')) {
           const t = line.trim();
-          if (t.toLowerCase().startsWith('event:')) {
-            eventType = t.replace(/event:\s*/i, '').trim();
-          } else if (t.toLowerCase().startsWith('data:')) {
-            dataStr = t.replace(/data:\s*/i, '').trim();
-          }
-        }
+          if (!t.toLowerCase().startsWith('data:')) continue;
 
-        // 只在 delta 事件中追加增量文本，避免 completed 完整内容重复
-        const isDelta = eventType.includes('.delta');
-        if (dataStr && isDelta && !eventType.includes('.created') && !eventType.includes('.in_progress') && eventType !== 'ping') {
+          const dataStr = t.replace(/data:\s*/i, '').trim();
+
+          // 流结束标记
+          if (dataStr === '[DONE]') break;
+
+          // 错误响应
+          if (dataStr.startsWith('{"error"')) {
+            let errMsg = dataStr;
+            try {
+              const errObj = JSON.parse(dataStr);
+              errMsg = errObj.error || dataStr;
+            } catch { /* 使用原始 dataStr */ }
+            throw new Error(errMsg);
+          }
+
           try {
             const obj = JSON.parse(dataStr);
-            // 跳过 verbose 内部元数据
-            if (obj.type === 'verbose') continue;
-            const content = typeof obj.content === 'string' ? obj.content : '';
+            // SSE 事件格式：{"type":"ai_response","content":"..."} / {"type":"error_message","content":"..."} / {"type":"ping","ts":...}
+            const eventType = obj.type;
+            if (eventType === 'ping') continue;
+            if (eventType === 'error_message') {
+              throw new Error(obj.content || '服务端错误');
+            }
+            if (eventType !== 'ai_response') continue;
+
+            const content = obj.content || '';
             if (content) {
               // 第一次有内容时：移除 typing，创建 AI 气泡
               if (!aiMsg) {
@@ -286,7 +308,7 @@ async function sendMessage() {
       }
     }
 
-    console.log(`[Coze] 最终内容长度: ${fullContent.length}, 内容: "${fullContent.slice(0, 100)}"`);
+    console.log(`[Chat] 最终内容长度: ${fullContent.length}, 内容: "${fullContent.slice(0, 100)}"`);
 
     if (fullContent.trim()) {
       chatHistory.push({ role: 'assistant', content: fullContent });
@@ -313,7 +335,7 @@ async function sendMessage() {
 
   } catch (err) {
     typing.remove();
-    console.error('[Coze] 错误:', err);
+    console.error('[Chat] 错误:', err);
     
     const errMsg = document.createElement('div');
     errMsg.className = 'chat-msg ai fade-in';
