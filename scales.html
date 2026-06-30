@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知我 — 量表自评</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+    <!-- Navigation -->
+    <nav class="nav">
+      <div class="nav-links">
+        <a class="nav-link" href="index.html">首页</a>
+        <a class="nav-link" href="chat.html">对话</a>
+        <a class="nav-link active" href="scales.html">量表自评</a>
+        <a class="nav-link" href="history.html">情绪历史</a>
+        <a class="nav-link" href="about.html">关于</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="scale-cards fade-in">
+        <!-- PHQ-9 Card -->
+        <div class="scale-card" onclick="startAssessment('phq9')">
+          <img src="images/card-phq9-title.svg" alt="PHQ-9 抑郁自评">
+        </div>
+
+        <!-- GAD-7 Card -->
+        <div class="scale-card" onclick="startAssessment('gad7')">
+          <img src="images/card-gad7-title.svg" alt="GAD-7 焦虑自评">
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知我 — 对话</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+    <!-- Navigation -->
+    <nav class="nav">
+      <div class="nav-links">
+        <a class="nav-link" href="index.html">首页</a>
+        <a class="nav-link active" href="chat.html">对话</a>
+        <a class="nav-link" href="scales.html">量表自评</a>
+        <a class="nav-link" href="history.html">情绪历史</a>
+        <a class="nav-link" href="about.html">关于</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main">
+      <!-- Unified Chat Container -->
+      <div class="chat-panel fade-in">
+        <!-- Messages Area -->
+        <div class="chat-messages" id="chatDialog">
+        </div>
+
+        <!-- Input Inside Panel -->
+        <div class="chat-panel-input">
+          <input type="text" placeholder="知我正在倾听，随时可以开始对话" id="chatInput"
+            onkeydown="if(event.key==='Enter')sendMessage()">
+          <button class="send-btn" onclick="sendMessage()">
+            <img src="images/send-btn.svg" alt="发送">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

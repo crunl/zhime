@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知我 — 首页</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+    <!-- Navigation -->
+    <nav class="nav">
+      <div class="nav-links">
+        <a class="nav-link active" href="index.html">首页</a>
+        <a class="nav-link" href="chat.html">对话</a>
+        <a class="nav-link" href="scales.html">量表自评</a>
+        <a class="nav-link" href="history.html">情绪历史</a>
+        <a class="nav-link" href="about.html">关于</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="hero fade-in">
+        <div class="hero-logo">
+          <img src="images/logo.svg" alt="知我 Logo">
+        </div>
+        <div class="hero-intro">
+          <img src="images/intro.svg" alt="品牌介绍">
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Chat Input — fixed to viewport bottom -->
+    <div class="chat-input-bar home-input">
+      <input type="text" placeholder="知我正在倾听，随时可以开始对话" id="homeInput"
+        onkeydown="if(event.key==='Enter')goChat()">
+      <button class="send-btn" onclick="goChat()">
+        <img src="images/send-btn.svg" alt="发送">
+      </button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
