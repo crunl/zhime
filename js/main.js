@@ -169,7 +169,7 @@ function initReport() {
 // Chat — 统一经 agents/chat 端点路由
 // ============================================
 
-const CHAT_API = '/chat';
+const CHAT_API = '/v1/chat/completions';
 const DEFAULT_MODEL = 'builtin';   // 'builtin' 或 'coze'
 
 /**
