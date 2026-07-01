@@ -4,7 +4,7 @@
    输出统一为 SSE 事件流（ai_response / ping / error_message）
    ============================================ */
 
-import { sseEvent, createSSEResponse, createLogger } from '../_shared';
+import { sseEvent, createSSEResponse, createLogger } from '../../_shared';
 
 const log = createLogger('ChatAgent');
 
